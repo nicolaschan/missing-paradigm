@@ -12,6 +12,9 @@ instance Show Token where
     show (Primitive t s) = "(" ++ show t ++ ": " ++ show s ++ ")"
     show (Function t1 t2 _) = "(" ++ show t1 ++ " -> " ++ show t2 ++ ")"
 
+parse :: Read a => Token -> a
+parse (Primitive IntType s) = read s
+
 apply :: Token -> Token -> Token
 apply (Function _ _ f) t = f t
 
@@ -24,3 +27,12 @@ checkType (Value _) = True
 checkType (Application (Value (Function t1 _ _)) (Value (Primitive t _))) = t == t1
 checkType (Application (Value (Function t1 _ _)) nested@(Application (Value (Function _ t2 _)) _)) = 
     t1 == t2 && checkType nested
+
+tokenAdd :: Token
+tokenAdd = Function IntType IntType tokenAdd1
+
+tokenAdd1 :: Token -> Token
+tokenAdd1 t = Function IntType IntType (tokenAdd2 t)
+
+tokenAdd2 :: Token -> Token -> Token
+tokenAdd2 t1 t2 = Primitive IntType $ show $ ((parse t1) :: Int) + ((parse t2) :: Int)
